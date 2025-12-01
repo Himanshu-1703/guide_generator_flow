@@ -1,0 +1,158 @@
+write_getting_started_guide:
+  description: >
+    Transform the comprehensive research report into a beginner-friendly
+    getting-started guide.
+
+    RESEARCH REPORT TO TRANSFORM INTO GUIDE: 
+    {research_report}
+
+    YOUR TASK:
+    Create a complete getting-started guide following this EXACT structure:
+
+    # Getting Started with [Framework/Tool Name]
+
+    ## Introduction
+      - Explain what this framework/tool is in 2-3 simple sentences.
+      - Why beginners should learn it. (benefits, use cases).
+      - What readers will learn by the end of this guide.
+
+    ## Prerequisites
+      - What knowledge is assumed (if any- explain technical terms).
+      - System Requirements (OS, Hardware)
+      - Software that needs to be installed first.
+
+    ## Installation and Setup
+      - Step by Step installation instructions.
+      - How to verify if installation is complete.
+      - Basic Configuration (if needed).
+
+    ## Core concepts
+      - 3-5 fundamental concepts beginners MUST understand.
+      - Explain each concept with simple analogies.
+      - Define all technical terminology.
+
+    ## Your First [Project/Example]
+      - A simple, practical example to get hands-on knowledge.
+      - Include complete code with line-by-line explanations.
+      - Show the expected output of the code.
+      - Explain what's happening at each step.
+
+    ## Common Patterns and Use cases
+      - 2-3 typical use cases beginners will encounter 
+      - When to use each pattern 
+      - Simple examples for each
+
+    ## Troubleshooting
+      - Top 5 errors beginners commonly face.
+      - How to fix each error (step-by-step).
+      - How to recognize these errors.
+
+    ## Next steps
+      - What to learn after mastering the basics.
+      - Recommended learning path.
+      - Links to next-level tutorials.
+
+    ## Additional Resources
+      - Links to official documentation.
+      - Community forums and support.
+      - Video tutorials (if mentioned in research)
+
+    CRITICAL WRITING GUIDELINES:
+
+    1. BEGINNER FRIENDLY MINDSET:
+      - Assume reader has ZERO experience with this tool. 
+      - Define every technical term before using it. 
+      - Use analogies to explain abstract concepts.
+
+    2. CLEAR STRUCTURE:
+      - Use markdown headers properly.
+      - Include code blocks with syntax highlighting.
+      - Use bullet points and numbered lists.
+      - Add emoji or visual markers for important notes.
+
+    3. PRACTICAL AND ACTIONABLE:
+      - Every section should have concrete examples.
+      - Core examples must be copy-paste ready.
+      - Include expected outputs where ever possible.
+
+    4. ENCOURAGING TONE: 
+      - Use "you" and "we" (friendly, not academic).
+      - Acknowledge that learning is a process.
+      - Celebrate small wins.
+
+    5. LENGTH:
+      - Aim for 3000-5000 words.
+      - Better be thorough than brief.
+      - Don't skip explanations to save space.
+  expected_output: >
+    A complete getting-started guide in markdown format (3000-5000 words) that: 
+
+      - Follows the exact structure specified above.
+      - Is written in clear, beginner-friendly language.
+      - Includes practical examples along with code snippets.
+      - Defines all technical terms.
+      - Can be followed step-by-step by someone with zero experience.
+  agent: technical_writer
+
+review_and_polish_guide:
+  description: >
+    Review and improve the getting-started guide to ensure it's truly beginner friendly
+    and easy to understand.
+
+    YOUR REVIEW CRITERIA:
+
+    1. CLARITY CHECK:
+      - Is any technical jargon used without definition?
+      - Are explanations clear to someone with zero experience?
+      - Are there any confusing sentences or paragraphs?
+      - Do analogies actually help or confuse?
+
+    2. COMPLETENESS CHECK:
+      - Does it follow the required structure completely?
+      - Are there any gaps in the learning progression?
+      - Are code examples complete and working?
+      - Are all the prerequisites listed?
+
+    3. BEGINNER-FRIENDLINESS CHECK:
+      - Can a true beginner follow this from start to finish?
+      - Are steps broken down enough?
+      - Is the tone encouraging and supportive?
+      - Are common pitfalls addressed?
+
+    4. ACCURACY CHECK:
+      - Is technical information correct?
+      - Do code examples align with the current best practices?
+      - Are troubleshooting tips accurate?
+
+    5. FORMATTING CHECK:
+      - Is the markdown formatted correctly?
+      - Are code blocks properly marked?
+      - Are headers used consistently?
+      - Is the document well-organized?
+
+    YOUR TASK:
+
+      1. Read through the entire guide as if you're a complete beginner.
+      2. Mark sections that are too advanced or are confusing.
+      3. Improve clarity, fix errors, enhance explanations.
+      4. Ensure that technical terms are defined before use. 
+      5. Add missing information if needed. 
+      6. Improve code examples with better comments.
+      7. Make the tone encouraging if too formal.
+      8. Verify the structure matches requirements.
+
+    PROVIDE:
+      - The improved version of the complete guide.
+      - Brief Summary of the changes made.
+  expected_output: >
+    The polished, publication-ready getting-started guide with:
+      - All technical jargon properly defined.
+      - Clear, beginner-friendly explanations throughout.
+      - Complete, working code examples.
+      - Proper markdown formatting 
+      - Encouraging and supportive tone.
+      - No gaps in the learning progression.
+
+    Save this quick-start guide as a markdown file. 
+  agent: content_editor
+  output_file: ./outputs/getting_started_guide.md

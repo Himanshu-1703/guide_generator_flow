@@ -1,0 +1,82 @@
+research_compilation:
+  description: >
+    Coordinate the research team to gather comprehensive information from ALL provided
+    sources.
+
+    AVAILABLE SOURCES:
+
+    YouTube Videos/Channels:
+    {youtube_links}
+
+    Web Pages/Articles/Code Documentation:
+    {webpage_links}
+
+    Research Papers:
+    {research_paper_links}
+
+    Documents (PDF/Text/Markdown):
+    {document_paths}
+
+    ---
+
+    YOUR RESPONSIBILITIES:
+
+    1. Identify which source types are provided (non-empty).
+    2. Delegate research tasks to appropriate specialists:
+      - YouTube Specialist: for youtube_links
+      - Web Specialist: for webpage_links
+      - Arxiv Specialist: for research_paper_links
+      - Document Specialist: for document_paths
+
+    3. Collect all the research findings from each of the specialist engaged.
+    4. Compile everything into ONE comprehensive research report
+      that includes:
+        - Executive Summary of all sources.
+        - Detailed findings organized by source type.
+        - All technical concepts, methods and implementations.
+        - Code examples and practical demos. (In proper code blocks)
+        - Best practices and tutorials.
+        - Step by Step guides and walkthroughs.
+        - Any charts or flows described as text.
+
+    CRITICAL RULES:
+      - Do Not shorten or summarize content - include EVERYTHING discovered.
+      - If a source field is empty, skip that source type entirely.
+      - Only Delegate to specialists whose source type has content.
+      - The final report generated should be exhaustive (minimum 5000 words).
+      - Include complete citations and links for all sources. 
+  expected_output: >
+    A comprehensive research report in markdown format with the following structure:
+
+    # Research Report: [Topic/Framework]
+
+    ## EXECUTIVE Summary
+    [High-level overview of all sources and key findings]
+
+    ## Youtube Content Analysis
+    [Detailed findings from all youtube videos/channels - ONLY IF youtube_links provided]
+
+    ## Web Content Analysis
+    [Detailed findings from all web pages - ONLY IF webpage_links are provided]
+
+    ## Arxiv Research Analysis
+    [Detailed findings from research papers - ONLY IF research_paper_links provided]
+
+    ## Document Analysis
+    [Detailed findings from documents - ONLY IF document_paths are provided]
+
+    ## Technical Concepts and Implementations
+    [Comprehensive technical details extracted from all sources]
+
+    ## CODE examples and Practical Demonstrations
+    [All code snippets, examples and implementations]
+
+    ## Best Practices and Recommendations
+    [Best Practices gathered from all sources]
+
+    ## Complete Bibliography
+    [All source citations with links]
+
+    The report must be extensive (5000+ words minimum) and include every 
+    relevant piece of information discovered from the provided sources
+  agent: research_manager
