@@ -10,7 +10,9 @@ from crewai_tools import (
     FileReadTool,
     PDFSearchTool,
     TXTSearchTool,
-    MDXSearchTool
+    MDXSearchTool,
+    CodeDocsSearchTool,
+    DirectoryReadTool
 )
 from typing import List
 
@@ -22,6 +24,7 @@ yt_channel_search_tool = YoutubeChannelSearchTool()
 # web scraping tools
 web_scraping_tool = ScrapeWebsiteTool()
 selenium_scraping_tool = SeleniumScrapingTool()
+code_docs_search_tool = CodeDocsSearchTool()
 
 # arxiv research paper tool
 arxiv_tool = ArxivPaperTool(download_pdfs=True,
@@ -32,6 +35,7 @@ file_reader_tool = FileReadTool()
 pdf_search_tool = PDFSearchTool()
 text_search_tool = TXTSearchTool()
 md_search_tool = MDXSearchTool()
+directory_read_tool = DirectoryReadTool()
 
 
 @CrewBase
@@ -58,14 +62,17 @@ class ResearchCrew():
     def youtube_specialist(self) -> Agent:
         return Agent(
             config=self.agents_config["youtube_specialist"],
-            tools=[yt_video_search_tool, yt_channel_search_tool]
+            tools=[yt_video_search_tool, 
+                   yt_channel_search_tool]
         )
         
     @agent
     def web_specialist(self) -> Agent:
         return Agent(
             config=self.agents_config["web_specialist"],
-            tools=[web_scraping_tool, selenium_scraping_tool]
+            tools=[web_scraping_tool, 
+                   selenium_scraping_tool,
+                   code_docs_search_tool]
         )
         
         
@@ -80,10 +87,11 @@ class ResearchCrew():
     def document_specialist(self) -> Agent:
         return Agent(
             config=self.agents_config["document_specialist"],
-            tool=[file_reader_tool,
+            tools=[file_reader_tool,
                   pdf_search_tool,
                   text_search_tool,
-                  md_search_tool]
+                  md_search_tool,
+                  directory_read_tool]
         )
 
     # ======================== Tasks ==================================
@@ -112,11 +120,20 @@ class ResearchCrew():
         )
 
 
-# def run(inputs: dict[str, str]) -> str:
-#     """Test Run our crew"""
-#     research_crew = ResearchCrew().crew()
-#     result = research_crew.kickoff(inputs)
-#     return result.raw
+def run(inputs: dict[str, str]) -> str:
+    """Test Run our crew"""
+    research_crew = ResearchCrew().crew()
+    result = research_crew.kickoff(inputs)
+    return result.raw
 
 
+if __name__ == "__main__":
+    inputs = {
+        "youtube_links": "",
+        "webpage_links": "",
+        "research_paper_links": "",
+        "document_paths": "docs/document-export-24-09-2025-11_58_50.txt",
+    }
     
+    result = run(inputs)
+    print(result)

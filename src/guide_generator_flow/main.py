@@ -3,7 +3,10 @@ from crewai.flow.flow import Flow, listen, start
 from guide_generator_flow.crews.research_crew.research_crew import ResearchCrew
 from guide_generator_flow.crews.writing_crew.writing_crew import WritingCrew
 from typing import Optional
+from dotenv import load_dotenv
 
+# load environment variables from .env file
+load_dotenv()
 
 # define a structured state for our flow
 class ResearchFlowState(BaseModel):
