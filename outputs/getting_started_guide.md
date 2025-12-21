@@ -1,537 +1,489 @@
-# Getting Started with LangChain — Beginner-friendly Guide
+# Getting Started with n8n — Beginner-Friendly Guide (Markdown)
 
-Save this file as GETTING_STARTED_LANGCHAIN.md
-
-Welcome! This guide walks you step-by-step from zero to a small working LangChain project. It's written for complete beginners: technical terms are defined before use, steps are explicit, and code examples include helpful comments. Read through once, then follow the steps in order. You got this!
+> Friendly note: This guide is written for absolute beginners. It defines terms before use, shows step-by-step setup (cloud + local), includes complete working examples, points out common pitfalls, and has troubleshooting tips. If anything is unclear, you can pause and test each node as described — small tests are key to building confidence.
 
 ---
 
-## Quick overview
+## Table of contents
 
-- What is LangChain?
-  - LangChain is an open-source Python library that helps you build applications that use large language models (LLMs). It provides building blocks for prompts, chains (series of steps), agents (deciding which tools to call), memory (remembering conversation context), and connectors to tools and data sources.
+- Introduction
+- Quick glossary (terms defined before use)
+- Why learn n8n (use cases & benefits)
+- What you'll learn
+- Prerequisites (system & software)
+- Installation & setup
+  - Option A — n8n Cloud (fastest)
+  - Option B — Self-host with Docker (local)
+- Core concepts (simple analogies + short practical notes)
+- Your first project: RSS → LLM Summary → Discord (complete, step-by-step)
+  - Pre-setup checklist
+  - Full node-by-node instructions
+  - Example: HTTP Request to OpenAI (complete example)
+  - Testing & limiting results
+- Common patterns & use cases
+- Troubleshooting (top errors and fixes)
+- Next steps (learning path & production tips)
+- Additional resources
+- Summary of changes made to this guide
 
-- Why learn it?
-  - It simplifies common tasks when building LLM apps (chatbots, summarizers, RAG systems) so you can focus on your app's behavior instead of plumbing.
+---
 
-- What you'll accomplish in this guide
-  - Install LangChain, set up a Python environment, run a simple verification script, build a small summarizer project, try basic agent and chat examples, and learn how to troubleshoot common problems.
+## Introduction
+
+n8n (pronounced "n-eight-n") is an open-source workflow automation tool. You build workflows visually by connecting "nodes", and n8n runs those steps for you automatically.
+
+Why learn it?
+- Automate repetitive manual tasks.
+- Connect APIs and apps without writing boilerplate glue code.
+- Combine data processing, webhooks, schedules, and AI models into repeatable workflows.
+- Great for prototyping, small business automation, and personal productivity.
+
+What you'll learn in this guide:
+- Core n8n concepts with clear definitions.
+- How to run n8n (cloud + local Docker).
+- How to build and test a full practical example: RSS → LLM summary → Discord.
+- How to use expressions safely and troubleshoot common problems.
+
+---
+
+## Quick glossary (you'll see these words often — definitions first)
+
+- Workflow: A sequence of steps (nodes) that n8n executes. Analogy: a recipe.
+- Node: A single step in a workflow that performs an action (read RSS, call an API, send a message, run code).
+- Trigger: A node that starts a workflow (e.g., schedule, webhook, RSS).
+- Credential: Stored secret info (API key, token). Analogy: keys to locked doors.
+- Expression: A small snippet/template used inside node fields to compute dynamic values, wrapped in {{ }}.
+- LLM: Large Language Model — AI models that generate or process text (e.g., OpenAI).
+- JSON: JavaScript Object Notation — a structured text format used for data interchange.
+- Merge / Split: Nodes that combine/split streams of items (be careful with different counts).
+- Pinning (n8n UI): Storing a value in the editor so it isn't re-sent to an LLM repeatedly (saves tokens).
+
+(Every technical term used later will be defined beforehand or when first referenced.)
 
 ---
 
 ## Prerequisites
 
-Before you begin, the guide assumes a few basics — but don't worry if you're not an expert.
+Who this guide assumes you are:
+- A beginner with no prior n8n experience. Basic comfort using a web browser and optionally a terminal/shell is enough.
 
-- Required prior knowledge:
-  - Basic Python: variables, functions, running a .py script. (If you don't know Python, follow a short beginner tutorial first.)
-  - Command line basics: running commands in Terminal (macOS/Linux) or PowerShell/Command Prompt (Windows).
+System requirements (self-hosted/local):
+- OS: Linux, macOS, or Windows (WSL recommended on Windows).
+- CPU: 2+ cores recommended.
+- RAM: 2GB+ (4GB+ recommended for heavy use).
+- Disk: 10GB+ free.
+- Docker Desktop (Windows/macOS) or Docker Engine (Linux) if self-hosting.
 
-- Technical terms (short definitions)
-  - API (Application Programming Interface): a way for programs to talk to external services (for example, OpenAI).
-  - LLM (Large Language Model): an AI model that generates or understands text (e.g., GPT).
-  - Prompt: the text you send to an LLM to instruct it.
-  - Environment variable: a key/value setting stored in your operating system used by programs (e.g., OPENAI_API_KEY).
-  - Token: a unit of text the model processes (roughly 3–4 characters on average, varies).
-  - Prompt engineering: designing prompts to get better outputs.
-  - Embeddings: numeric vectors representing text for semantic similarity.
-  - Vector store: a database that stores embeddings for similarity search (e.g., FAISS, Pinecone).
+Software you may install:
+- Option A (recommended for beginners): n8n Cloud — no local install required.
+- Option B (local): Docker (and optionally Docker Compose).
+- Optional: VS Code (for viewing JSON exports), a terminal for Docker commands.
 
-- System requirements
-  - OS: macOS, Linux, Windows 10/11.
-  - Python: 3.8 or later (3.10/3.11 recommended).
-  - Memory/Disk: small for development when calling remote LLMs. Heavy if you run local models or large vectorstores.
+Note about webhooks and testing locally:
+- If you plan to use webhooks locally, you'll need a public URL. For testing, tools like ngrok (https://ngrok.com) are very helpful.
 
-- Software to have installed first
-  - Python and pip
-  - A code editor: VS Code, PyCharm, or any text editor.
-  - (Optional but recommended) virtualenv or built-in venv to isolate project packages.
+Emoji note: ✅ Use n8n Cloud for the fastest start. Use Docker when you want local control.
 
 ---
 
-## Installation and Environment Setup (step-by-step)
+## Installation & Setup
 
-1. Create and activate a Python virtual environment (recommended)
+Two recommended ways to start:
 
-- macOS / Linux (bash/zsh):
-  ```bash
-  python3 -m venv langchain-env
-  source langchain-env/bin/activate
-  ```
-- Windows (PowerShell):
-  ```powershell
-  python -m venv langchain-env
-  .\langchain-env\Scripts\Activate.ps1
-  ```
-- Windows (Command Prompt):
-  ```cmd
-  python -m venv langchain-env
-  .\langchain-env\Scripts\activate.bat
-  ```
+### Option A — n8n Cloud (fastest, best for beginners)
+1. Visit https://n8n.io and click "Get started" or "Try n8n Cloud".
+2. Create an account (email + password) and verify your email.
+3. Open the n8n Editor from the dashboard.
 
-Why this? A virtual environment keeps your project packages separate from system Python and avoids version conflicts.
+How to verify:
+- You should see the n8n canvas with a "Create Workflow" or "Start from Scratch" button.
+- Click "Create Workflow" and the editor opens — success!
 
-2. Upgrade pip and install required packages
+Basic notes:
+- Credentials are managed in the editor (Menu → Credentials).
+- No local Docker installation required.
+- Recommended for trying examples quickly.
+
+---
+
+### Option B — Self-host with Docker (local, for more control)
+
+We give a minimal Docker Compose setup for a development environment. For production, follow the official n8n deployment docs.
+
+1. Install Docker Desktop (macOS/Windows) or Docker Engine (Linux).
+2. Make a folder for n8n:
 ```bash
-pip install --upgrade pip
-pip install langchain openai python-dotenv
-```
-- `langchain`: the main library.
-- `openai`: client library to call OpenAI APIs (used here as an example LLM provider).
-- `python-dotenv`: helps load environment variables from a `.env` file (so you don't hard-code secrets).
-
-Note: LangChain integrates with many providers and tools. For extra integrations (e.g., FAISS, Pinecone, SerpAPI), you'll install more packages later.
-
-3. Create a project folder and `.env` file
-- Make a folder for the project, e.g., `langchain-project`.
-- Create a `.env` file inside the project folder and add your API key(s):
-
-```
-# .env
-OPENAI_API_KEY=sk-REPLACE_WITH_YOUR_KEY
+mkdir -p ~/n8n
+cd ~/n8n
 ```
 
-Important: Do not commit `.env` to version control. Add `.env` to `.gitignore` if you use git.
-
-4. Verify that the OpenAI key works and LangChain can call the LLM
-
-Create a file named `verify_langchain.py` with the following code:
-
-```python
-# verify_langchain.py
-"""
-Verify LangChain + OpenAI setup.
-Make sure:
-  - pip install langchain openai python-dotenv
-  - A .env file exists with OPENAI_API_KEY=sk-...
-Run: python verify_langchain.py
-"""
-
-import os
-from dotenv import load_dotenv
-
-# Load .env file into environment variables
-load_dotenv()
-
-# Read API key from environment
-api_key = os.getenv("OPENAI_API_KEY")
-if not api_key:
-    raise SystemExit(
-        "OPENAI_API_KEY not found. Create a .env file with OPENAI_API_KEY=sk-... "
-        "or set the environment variable in your shell."
-    )
-
-# Import LangChain LLM wrapper
-from langchain.llms import OpenAI
-
-# Create an LLM instance. temperature controls randomness:
-# 0 = deterministic, higher = more creative/varied outputs.
-llm = OpenAI(temperature=0)
-
-# Make a simple call to the model
-try:
-    result = llm("Say hello in one word:")
-    print("Model response:", result)
-except Exception as e:
-    print("Error calling the model:", e)
-    print("Common causes: invalid API key, network issue, or API changes. See troubleshooting section.")
-```
-
-Run it:
+3. Create a `.env` file in the folder (safer than hardcoding secrets in compose):
 ```bash
-python verify_langchain.py
+# File: .env
+N8N_BASIC_AUTH_ACTIVE=true
+N8N_BASIC_AUTH_USER=youruser
+N8N_BASIC_AUTH_PASSWORD=yourstrongpassword
+# Optional: PUBLIC_URL used for webhooks if accessible externally, e.g. via ngrok/tunnel
+# N8N_PUBLIC_URL=https://yourdomain.example
 ```
 
-Expected: A short one-word greeting printed. If you get an error, check the troubleshooting section below.
+4. Create a `docker-compose.yml` file:
+```yaml
+version: '3.7'
 
-Note: If you use a provider other than OpenAI, replace the `OpenAI` wrapper and environment variables with those required by your provider. See that provider's docs.
+services:
+  n8n:
+    image: n8nio/n8n:latest
+    restart: unless-stopped
+    ports:
+      - "5678:5678"
+    environment:
+      - N8N_BASIC_AUTH_ACTIVE=${N8N_BASIC_AUTH_ACTIVE}
+      - N8N_BASIC_AUTH_USER=${N8N_BASIC_AUTH_USER}
+      - N8N_BASIC_AUTH_PASSWORD=${N8N_BASIC_AUTH_PASSWORD}
+      # Uncomment and set if you expose to internet
+      # - N8N_HOST=yourdomain.example
+      # - N8N_PORT=5678
+      # - WEBHOOK_URL=${N8N_PUBLIC_URL}
+    volumes:
+      - ~/.n8n:/home/node/.n8n
+```
+
+5. Start n8n:
+```bash
+docker-compose up -d
+```
+
+6. Verify:
+- Open http://localhost:5678 in your browser.
+- Log in using the username/password from the `.env` file.
+- You should see the editor canvas.
+
+Helpful dev commands:
+- View logs: docker-compose logs -f n8n
+- Stop: docker-compose down
+
+Security note 🔒:
+- For public exposure, use HTTPS and stronger auth (reverse proxy + TLS). Do NOT expose the editor to the open internet with default credentials.
 
 ---
 
-## Core LangChain Concepts (plain language)
+## Core Concepts (with simple analogies & quick practical notes)
 
-We'll define each concept briefly and include an analogy to help you remember.
+1. Workflow
+   - Definition: Full pipeline of nodes executed by n8n.
+   - Analogy: A recipe with ordered steps.
+   - Practical: Save workflows, name them, and version control by export/import.
 
-1. LLM (Large Language Model)
-   - Definition: The AI that generates or interprets text (e.g., GPT-3.5/4).
-   - Analogy: The LLM is like a talented writer you ask to write or summarize text.
-   - In LangChain: wrapped by classes like `OpenAI` or `ChatOpenAI`.
+2. Node
+   - Definition: One step in the workflow (trigger, API call, transformation).
+   - Analogy: A single instruction in a recipe.
+   - Practical: Nodes receive and output arrays of JSON items.
 
-2. Prompt & PromptTemplate
-   - Prompt: The instruction text you provide to the model.
-   - PromptTemplate: A template with placeholders for inputs you fill in programmatically.
-   - Analogy: Prompt = recipe instructions; PromptTemplate = recipe with blanks you fill.
+3. Trigger
+   - Definition: Node that starts the workflow automatically.
+   - Examples: Manual Trigger (start by clicking), Schedule Trigger (time-based), Webhook Trigger (HTTP event), RSS Trigger (new feed item).
+   - Practical: Only triggers can start automatic runs; others are action nodes.
 
-3. Chain
-   - Definition: A series of steps where output from one step feeds the next.
-   - Analogy: An assembly line in a factory.
-   - Example: `LLMChain` = PromptTemplate + LLM that runs together.
+4. Credential
+   - Definition: Stored secret (API key/token) used by nodes.
+   - Practical: Create credentials once and reuse them. Use the "Credentials" area in the editor.
 
-4. Agent & Tools
-   - Agent: A controller that decides which tools to call and in what order to solve a task.
-   - Tools: Predefined functions or connectors (search, calculator, file loader).
-   - Analogy: The agent is an assistant who can pick up a calculator or web browser (tools) to complete tasks.
+5. Expression & JSON
+   - Expression: Small inline JavaScript-like code in {{ }} used to compute values dynamically inside node fields.
+   - JSON: Data format used to pass information between nodes. Inspect node output to learn field names.
+   - Practical: Use expressions to insert titles, links, or LLM outputs into messages.
 
-5. Memory
-   - Definition: Storage for conversation state so the model can remember previous interactions.
-   - Analogy: A notebook where the assistant writes down previous conversation details.
-
-Why these matter: they are the building blocks for most LangChain apps: from simple single-turn prompts to multi-step agent-based workflows that use external data.
-
----
-
-## Your First Project: Simple Summarizer (complete and explained)
-
-Goal: Build a small script that summarizes text using an LLM via LangChain.
-
-Create a file called `summarizer.py` with the code below. This example is copy-paste ready, with comments to help you understand each line.
-
-```python
-# summarizer.py
-"""
-Simple summarizer using LangChain and OpenAI.
-Requirements:
-  pip install langchain openai python-dotenv
-  create a .env file with OPENAI_API_KEY=sk-...
-Run:
-  python summarizer.py
-"""
-
-import os
-from dotenv import load_dotenv
-
-# 1. Load environment variables from .env (safe for development)
-load_dotenv()
-
-# 2. Confirm API key exists
-api_key = os.getenv("OPENAI_API_KEY")
-if not api_key:
-    raise SystemExit(
-        "OPENAI_API_KEY not found. Create a .env file with OPENAI_API_KEY=sk-... "
-        "or set the env var in your shell."
-    )
-
-# 3. Import LangChain building blocks
-from langchain.llms import OpenAI
-from langchain.prompts import PromptTemplate
-from langchain.chains import LLMChain
-
-# 4. Create an LLM instance (here we use OpenAI wrapper).
-#    temperature = 0.2 means fairly deterministic but not completely strict.
-llm = OpenAI(temperature=0.2)
-
-# 5. Define a prompt template with an input variable called "text".
-prompt = PromptTemplate(
-    input_variables=["text"],
-    template=(
-        "You are a helpful assistant that writes short, clear summaries.\n"
-        "Summarize the following text in 2-3 simple sentences, using plain language "
-        "and no technical jargon. If the input is empty, say 'No content provided.'\n\n"
-        "Text:\n{text}\n\nSummary:"
-    ),
-)
-
-# 6. Create an LLMChain that binds the LLM and the prompt template.
-chain = LLMChain(llm=llm, prompt=prompt)
-
-# 7. Example text to summarize
-long_text = (
-    "LangChain is a framework for developing applications powered by large language models "
-    "by chaining together components. It helps structure prompts, manage memory, and "
-    "connect to external tools and data sources to make LLMs more capable and reliable."
-)
-
-# 8. Run the chain. We pass a dict because our PromptTemplate expects a 'text' input.
-#    LLMChain.run can accept a string or a dict depending on the template;
-#    using a dict is explicit and safe.
-try:
-    result = chain.run({"text": long_text})
-    print("=== Summary ===")
-    print(result.strip())
-except Exception as e:
-    print("Error when running the chain:", e)
-    print("Check your API key, network connection, or package versions.")
-```
-
-Notes and explanations (line-by-line summary)
-- load_dotenv(): reads your `.env` file and sets those values in the environment for the running script.
-- OpenAI(temperature=...): wraps the provider's API. The `temperature` parameter affects creativity/randomness.
-- PromptTemplate: templates let you reuse consistent prompts and safely plug in variables.
-- LLMChain: an easy way to bind a prompt template with an LLM and run the whole step with inputs.
-
-Expected: When you run `python summarizer.py`, you should see a 2–3 sentence summary printed. Model output may vary.
-
-Tips:
-- For predictable outputs during testing, set `temperature=0`.
-- If you want to use newer chat-style models (ChatGPT), see the "Chat models" section below.
+Extra terms:
+- Merge: Join multiple inputs — careful with different numbers of items.
+- Split: Break multi-item payloads into individual executions.
+- Pinning: In UI, pin values so they are not re-sent (useful to save LLM tokens).
 
 ---
 
-## Some Useful Patterns (practical examples)
+## Your First Project — RSS → LLM Summary → Discord
 
-1) Single-turn text generation (summaries, rewrites)
-- Use PromptTemplate + LLMChain (as we did above).
+Goal: Read RSS items, summarize each using an LLM, and post summaries to Discord.
 
-2) Multi-turn chat with memory
-- Use `ConversationChain` and `ConversationBufferMemory` to allow the assistant to remember earlier conversation.
+High-level flow:
+RSS Read (trigger or node) → LLM (OpenAI via HTTP Request or built-in OpenAI node) → Set (format message) → Discord (webhook)
 
-Example:
-```python
-# conversation_example.py
-from dotenv import load_dotenv
-import os
-load_dotenv()
+Before you start — Pre-setup checklist
+- Discord: Create a webhook for your channel (Server Settings → Integrations → Webhooks) and copy the webhook URL.
+- OpenAI: Create an API key in your OpenAI account and copy it as a credential (or store as a credential/secret in n8n).
+- If self-hosting and testing webhooks, ensure your local instance is accessible or use ngrok.
 
-from langchain.llms import OpenAI
-from langchain.chains import ConversationChain
-from langchain.memory import ConversationBufferMemory
+Step-by-step (n8n Editor):
 
-# Ensure API key present
-if not os.getenv("OPENAI_API_KEY"):
-    raise SystemExit("Set OPENAI_API_KEY in .env")
+1) Create a new workflow
+- In the editor click "Create Workflow".
+- Give it a name like "RSS -> LLM -> Discord".
+- Save the workflow early to avoid losing work.
 
-llm = OpenAI(temperature=0)
-memory = ConversationBufferMemory(return_messages=True)  # store messages
-conv = ConversationChain(llm=llm, memory=memory, verbose=False)
+2) Add RSS Read node
+- Add a node: search for "RSS" → choose "RSS Read".
+- Set field "URL" to an RSS feed, for example: https://krebsonsecurity.com/feed/
+- Optional: set "Limit" to a number (e.g., 5) to avoid fetching too many items during testing.
+- Click "Execute Node" to fetch items.
+- Inspect the OUTPUT panel: each item will show fields such as `title`, `link`, `content`, `pubDate`.
 
-print(conv.predict(input="Hello! My name is Alex."))       # Assistant introduces/replies
-print(conv.predict(input="Can you remind me my name?"))    # Memory allows recall of Alex
+Tip: If the RSS node returns an array, n8n normally runs downstream nodes once per item (this is usually what you want).
+
+3) Add an LLM node — two recommended approaches
+
+Option A — Use the built-in OpenAI node (if available)
+- Add "OpenAI" node.
+- Create a credential with your OpenAI API key in the node's credential dropdown.
+- Configure:
+  - Operation: "Chat completion" (if supported)
+  - Model: gpt-3.5-turbo (or another available model)
+  - Messages: Use a single message with role "user" and content like:
+    ```
+    Please summarize the following article into two concise sentences.
+
+    {{$json["content"]}}
+    ```
+- Execute the node (connect it to the RSS node first and run the workflow), inspect output. The summary text will usually be at `choices[0].message.content`.
+
+Option B — Use an HTTP Request node to call OpenAI Chat Completions API (complete example)
+
+This option always works and shows exactly what the API returns. Replace `YOUR_OPENAI_KEY` with the credential value (use n8n credentials in production).
+
+- Add "HTTP Request" node.
+- Set:
+  - HTTP Method: POST
+  - URL: https://api.openai.com/v1/chat/completions
+  - Authentication: None (we'll set the Authorization header)
+  - Headers (JSON):
+    - Authorization: Bearer {{ $credentials.openaiApiKey.value }}  <-- example if you stored as credential
+    - Content-Type: application/json
+  - Body Content Type: JSON
+  - Body Parameters (raw JSON): (use expression mode to include the RSS article content)
+```json
+{
+  "model": "gpt-3.5-turbo",
+  "messages": [
+    {
+      "role": "user",
+      "content": "Please summarize the following article into two concise sentences.\n\n{{$json[\"content\"]}}"
+    }
+  ],
+  "temperature": 0.2,
+  "max_tokens": 200
+}
 ```
-
-3) Agents that call tools (calculator example)
-- Agents let the model decide to call tools for things it shouldn't or can't reliably compute itself.
-
-Example:
-```python
-# agent_math_example.py
-from dotenv import load_dotenv
-import os
-load_dotenv()
-
-from langchain.llms import OpenAI
-from langchain.agents import initialize_agent, load_tools, AgentType
-
-if not os.getenv("OPENAI_API_KEY"):
-    raise SystemExit("Set OPENAI_API_KEY in .env")
-
-llm = OpenAI(temperature=0)
-
-# load_tools supports built-in tools like "llm-math" for reliable math steps
-tools = load_tools(["llm-math"], llm=llm)
-
-agent = initialize_agent(
-    tools, llm, agent=AgentType.ZERO_SHOT_REACT_DESCRIPTION, verbose=True
-)
-
-# The agent will use the math tool rather than rely solely on LLM math.
-print(agent.run("If I invest $1000 and get 5% annual interest for 3 years, how much will I have?"))
-```
-
 Notes:
-- Some tools (e.g., web search like SerpAPI) require their own API keys and configuration.
-- Start with simple tools (llm-math) to understand how agents work.
+- In n8n, to put the expression inside the JSON body, ensure the node allows expressions (there will be a toggle or an icon to switch value to expression mode). The expression above inserts the RSS article content.
+- The response JSON will contain `choices[0].message.content` — use that in the next node.
 
----
+Why HTTP Request? It's explicit and helpful to learn what the API returns. But using the dedicated OpenAI node is simpler if available.
 
-## Chat Models (brief, clear example)
+4) Add Set node to format the Discord message
+- Add "Set" node (this node creates/renames fields in the item).
+- Create a new field:
+  - Name: message
+  - Value (use expression; example uses Chat Completion response path):
+```text
+Hey — here is a short summary:
 
-Chat models take structured messages like system/user/assistant. LangChain provides helpers.
+Title: {{$json["title"]}}
 
-Example using `ChatOpenAI` and `ChatPromptTemplate`:
+Summary: {{$json["choices"] && $json["choices"][0] && $json["choices"][0].message && $json["choices"][0].message.content || $json["response"] || $json["summary"]}}
 
-```python
-# chat_example.py
-from dotenv import load_dotenv
-import os
-load_dotenv()
-
-from langchain.chat_models import ChatOpenAI
-from langchain.prompts import ChatPromptTemplate, SystemMessagePromptTemplate, HumanMessagePromptTemplate
-
-if not os.getenv("OPENAI_API_KEY"):
-    raise SystemExit("Set OPENAI_API_KEY in .env")
-
-chat = ChatOpenAI(temperature=0)
-
-# System message sets behavior
-system_template = SystemMessagePromptTemplate.from_template("You are a friendly assistant who explains things simply.")
-# Human message template with a placeholder
-human_template = HumanMessagePromptTemplate.from_template("Explain {topic} in simple terms.")
-# Combine into chat prompt
-chat_prompt = ChatPromptTemplate.from_messages([system_template, human_template])
-
-# Format messages and call the chat model
-messages = chat_prompt.format_messages({"topic": "blockchain"})
-# chat expects messages (list) or the prompt directly depending on the version; this works across many setups
-response = chat(messages)
-print(response.content)  # prints assistant message
+Link: {{$json["link"]}}
 ```
+Explanation:
+- We attempt several possible keys for the LLM output because different nodes / APIs return different structures. The most common for OpenAI Chat is `choices[0].message.content`.
+- After running the LLM node once, inspect the output and update this expression to use the exact path found in the LLM node's output.
 
-If the library API changes, adjust by checking the official LangChain docs for the correct way to call ChatOpenAI. (APIs for libraries evolve; checking the docs is a good habit.)
+5) Add Discord node (Webhook)
+- Add "Discord" node if available, or use "HTTP Request" to POST to the webhook URL.
+Option A — Discord Node:
+  - Operation: "Send message"
+  - Credential: (if a credential type exists for Discord webhooks enter the webhook URL)
+  - Message content: use expression `{{ $json["message"] }}`
 
----
-
-## Troubleshooting — Common Problems & Fixes
-
-1) OPENAI_API_KEY not found or authentication error
-- Symptom: Script exits with "OPENAI_API_KEY not found" or API returns 401.
-- Fix:
-  - Ensure `.env` exists and load_dotenv() is called.
-  - Or set environment variable in shell:
-    - macOS/Linux: export OPENAI_API_KEY=sk-...
-    - Windows PowerShell: $env:OPENAI_API_KEY="sk-..."
-  - Confirm by printing `os.getenv("OPENAI_API_KEY")` in Python (do not print keys in logs you share).
-
-2) ModuleNotFoundError: No module named 'langchain'
-- Symptom: Import fails.
-- Fix:
-  - Ensure virtual environment activated.
-  - Run `pip install langchain`.
-  - In IDE, ensure interpreter points to the venv.
-
-3) 429 Rate limit or Too Many Requests
-- Symptom: API returns 429.
-- Fix:
-  - Respect quotas; add exponential backoff (sleep and retry).
-  - Reduce request frequency or batch requests.
-  - Check billing and usage on provider dashboard.
-
-4) Unexpected or incorrect outputs (hallucinations)
-- Symptom: Model invents facts.
-- Fix:
-  - Improve prompt clarity: ask model to say "I don't know" when unsure.
-  - Use retrieval-augmented generation (RAG): provide real source documents.
-  - Verify outputs with a separate tool or process.
-
-5) Agent or tool errors
-- Symptom: Tool returns error or agent can't access tool.
-- Fix:
-  - Check that tool-specific credentials (e.g., SERPAPI_API_KEY) are set.
-  - Test the tool independently of the agent first.
-  - Read tool error messages and docs.
-
-6) API or version incompatibilities
-- Symptom: Code that used to work now raises different errors.
-- Fix:
-  - Check the installed package versions: `pip show langchain openai`
-  - Review LangChain's changelog and docs for breaking changes.
-  - Consider pinning a working version in `requirements.txt` if needed.
-
-Debugging tips
-- Reproduce the problem with the smallest possible script.
-- Add prints between steps to inspect variables.
-- Use `temperature=0` for predictable outputs when debugging.
-- Use verbose logging in LangChain (some components accept `verbose=True`).
-
----
-
-## Security & Cost Notes (important for beginners)
-
-- Keep your API keys private. Never share them publicly or commit to Git.
-- Be aware that calling LLM APIs costs money per token. Check the provider's pricing.
-- Start with small requests during development (short prompts, low `max_tokens`) to avoid unexpected charges.
-- Use environment variables and secrets managers in production; do not store keys in code.
-
----
-
-## Next Steps / Learning Path
-
-1. Improve prompt engineering (learn how to write robust prompts and templates).
-2. Learn retrieval + embeddings (RAG): store documents as embeddings and retrieve relevant pieces for accurate answers.
-3. Build and customize agents with custom tools (APIs, data connectors).
-4. Deploy your app (FastAPI, Flask) and learn about monitoring, caching, and rate limiting.
-5. Study production concerns: batching, async calls, logging, and cost management.
-
-Recommended learning order:
-1. Python basics (if needed)
-2. LangChain fundamentals (LLMs, prompts, chains)
-3. Memory and multi-turn conversation
-4. Embeddings and retrieval (FAISS, Pinecone)
-5. Agents and custom tools
-6. Deployment and scaling
-
----
-
-## Additional Resources & Cheatsheet
-
-Official docs:
-- LangChain docs: https://docs.langchain.com/oss/python/langchain/install
-- LangChain agents docs: https://docs.langchain.com/oss/python/langchain/agents
-
-Community:
-- GitHub: https://github.com/langchain-ai/langchain
-- Search StackOverflow for LangChain questions and examples
-
-Short cheatsheet
-- Install:
-  ```bash
-  pip install langchain openai python-dotenv
-  ```
-- Basic LLM:
-  ```python
-  from langchain.llms import OpenAI
-  llm = OpenAI(temperature=0)
-  print(llm("Write a haiku about coffee."))
-  ```
-- Prompt + Chain:
-  ```python
-  from langchain.prompts import PromptTemplate
-  from langchain.chains import LLMChain
-  prompt = PromptTemplate(input_variables=["topic"], template="Write a short poem about {topic}.")
-  chain = LLMChain(llm=llm, prompt=prompt)
-  print(chain.run({"topic":"programming"}))
-  ```
-
----
-
-## Appendix: More Examples and Common Patterns
-
-1) Conversation memory with Chat models:
-```python
-from dotenv import load_dotenv
-import os
-load_dotenv()
-
-from langchain.chat_models import ChatOpenAI
-from langchain.chains import ConversationChain
-from langchain.memory import ConversationBufferMemory
-
-if not os.getenv("OPENAI_API_KEY"):
-    raise SystemExit("Set OPENAI_API_KEY in .env")
-
-chat = ChatOpenAI(temperature=0)
-memory = ConversationBufferMemory(return_messages=True)
-conv = ConversationChain(llm=chat, memory=memory)
-print(conv.predict(input="Hi, my name is Alex."))
-print(conv.predict(input="What's my name?"))
+Option B — HTTP Request to Discord webhook (simple and universal)
+- Add "HTTP Request" node:
+  - HTTP Method: POST
+  - URL: (paste your Discord webhook URL)
+  - Body Content Type: JSON
+  - Body Parameters:
+```json
+{
+  "content": "{{$json[\"message\"]}}"
+}
 ```
+- Execute the node; one message per input item should appear in your Discord channel.
 
-2) Notes about tool credentials:
-- If you use `load_tools(["serpapi"], ...)`, you must set SERPAPI_API_KEY in your environment and install required extras. Always read the tool docs.
+6) Wire the nodes together:
+- RSS Read → LLM (OpenAI/HTTP Request) → Set → Discord
+
+7) Test the workflow
+- Click "Execute Workflow" (this runs the entire flow).
+- Inspect outputs at each node.
+- Check Discord for posted messages.
+
+Important testing pointers:
+- During early experiments, set a low "Limit" on RSS and set "Execute Node" to test nodes individually.
+- If you see multiple messages and want just one digest, aggregate items before sending (see "Testing & limiting results" below).
 
 ---
 
-## Final Encouraging Note
+### Example: cURL test for OpenAI (useful to debug outside n8n)
 
-Learning LangChain is a step-by-step journey — start small and celebrate each working script. Build the summarizer, then add memory, then retrieval, and finally an agent. If you get stuck, debug step-by-step, read error traces, and consult the docs/community. You're building skills to create powerful AI-driven tools. Keep going — you've got this! 🚀
+From your terminal (replace OPENAI_KEY and paste a short article text):
+```bash
+curl https://api.openai.com/v1/chat/completions \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer $OPENAI_KEY" \
+  -d '{
+    "model":"gpt-3.5-turbo",
+    "messages":[{"role":"user","content":"Please summarize this article into two sentences:\n\n<article text here>"}],
+    "temperature":0.2
+  }'
+```
+The response will include `choices[0].message.content` which contains the summary.
 
 ---
 
-Summary of Changes Made
-- Reorganized and cleaned up the original content into a coherent, ordered markdown guide suitable for beginners.
-- Added explicit step-by-step setup instructions (virtualenv activation on different shells) and explained why to use a virtual environment.
-- Expanded the `.env` and security advice and added explicit `.gitignore` note.
-- Improved and hardened verification and example scripts: added API key checks, try/except around API calls, clearer comments and guidance on inputs/outputs.
-- Defined technical terms before their first use and added short analogies for each core concept to help understanding.
-- Clarified code examples to be copy-paste ready, added comments, and used explicit dict input for chain.run to avoid confusion.
-- Included practical troubleshooting steps, debugging tips, and broader common pitfalls (rate limits, billing, interpreter mismatch).
-- Clarified Chat model usage with a clean example and notes about API evolution.
-- Wrote an encouraging, accessible tone throughout and recommended next steps and learning path.
-- Ensured consistent Markdown formatting, headers, and properly marked code blocks for easy reading and saving as a markdown file.
+### Testing & limiting results (common needs)
+- If RSS returns many items and you only want recent ones:
+  - Use the "Limit" field in the RSS node.
+  - Or add an "If" node after RSS with a JavaScript expression to filter by `pubDate`. Example expression (in an If node Expression field):
+```javascript
+// Returns true if item is within last 3 days
+{{$json["pubDate"] ? (new Date($json["pubDate"]).getTime() >= Date.now() - 3*24*60*60*1000) : false}}
+```
+- To create a single digest message for multiple items:
+  - Use a "Merge" or a small Code node to aggregate item fields (e.g., build a string of summaries). Then post that one message to Discord.
+
+---
+
+## Common patterns and use cases
+
+1. Schedule-triggered reports:
+   - Schedule Trigger → Fetch data → Transform → Email/Slack/Discord.
+   - Use for automatic daily/weekly digests.
+
+2. Event-driven webhook flows:
+   - Webhook Trigger → Validate → Store in database → Notify.
+   - Use for form submissions, Stripe events, or CI notifications.
+
+3. Pull-process-publish:
+   - RSS → LLM Analysis → Combine → Post to Slack/Discord or update a website.
+   - Useful for news monitoring, security feeds, content curation.
+
+---
+
+## Troubleshooting (top beginner errors & fixes)
+
+1. Invalid credentials / Authentication failed
+   - Symptoms: 401/403 errors or node shows authentication error.
+   - Fix:
+     - Recreate credentials in the editor, paste full keys (no extra spaces).
+     - Check that the service (OpenAI, Discord) key hasn't expired or been revoked.
+     - For OpenAI, ensure the account has access and billing is set up.
+
+2. Node returns empty output
+   - Symptoms: OUTPUT panel shows zero items.
+   - Fix:
+     - Execute the upstream node alone (e.g., RSS) and inspect its output.
+     - Confirm the feed URL is correct and accessible from your instance.
+     - For webhooks, ensure the external system actually sent a request.
+
+3. Duplicate or many messages posted
+   - Symptoms: Many repeated posts in Discord.
+   - Explanation: n8n executes downstream nodes once per input item by default.
+   - Fix:
+     - Limit items in RSS node.
+     - Aggregate into one message when you want a digest.
+     - Use filters to only process new items.
+
+4. LLM summaries truncated or low-quality
+   - Symptoms: Summaries missing parts or repetitive.
+   - Fix:
+     - Local LLMs may have small context windows — chunk articles or use remote models.
+     - Improve prompts with clear instructions and examples.
+     - Pin static prompt parts to save tokens.
+
+5. Merge node mismatches
+   - Symptoms: After merging, fields misaligned or missing.
+   - Fix:
+     - Avoid merging streams with differing counts unless you intentionally want pairing behavior.
+     - Collect arrays first and then merge intentionally (use Code node to join arrays).
+
+General debugging tips:
+- Use "Execute Node" to test a single node.
+- Inspect the "Executions" panel to replay and view past runs.
+- Add "Set" nodes with sample data to develop downstream nodes.
+
+---
+
+## Next steps (learning plan)
+
+1. Expressions deep-dive
+   - Learn $json, $items, and how expressions evaluate values.
+2. Aggregation & data transformations
+   - Learn Merge, Split, and Code nodes where needed.
+3. Production readiness
+   - Deploy behind HTTPS, use environment variables, backups, and monitor runs.
+4. Advanced AI integrations
+   - Learn few-shot prompts, instruction tuning, and token-efficiency tricks.
+
+Recommended order:
+1) Official quickstart (you’ve already started).
+2) Expressions practice.
+3) Build 3 small automations.
+4) Export/import workflows (JSON templates).
+5) Explore community templates.
+
+---
+
+## Additional resources
+
+- Official n8n docs: https://docs.n8n.io/
+- First workflow tutorial: https://docs.n8n.io/try-it-out/tutorial-first-workflow/
+- Community forum: https://community.n8n.io/
+- Stack Overflow: https://stackoverflow.com/questions/tagged/n8n
+- Templates: https://n8n.io/workflows
+- ngrok for local webhook testing: https://ngrok.com
+
+---
+
+## Final encouragement
+
+You completed a practical end-to-end example. Celebrate small wins: "first workflow executed", "first Discord message sent", "first LLM summary produced". Automation is iterative — build small, test frequently, and gradually add complexity.
 
 If you want, I can:
-- Create a downloadable template project (folder with `summarizer.py`, `.env.example`, and README).
-- Walk through RAG (vector store + embeddings) with a small example.
-- Help adapt this guide to a different LLM provider (e.g., Anthropic, Azure OpenAI).
+- Create an exportable n8n workflow JSON for the RSS→LLM→Discord example.
+- Produce a checklist for deploying n8n with Docker Compose and HTTPS.
+- Help refine prompts for better summarization.
 
-Which follow-up would help you most?
+Happy automating! 🚀
+
+---
+
+## Summary of changes made to this guide
+
+- Reorganized structure for clearer learning progression (glossary before use, checklist before steps).
+- Defined all technical jargon before first use and included analogies that assist rather than confuse.
+- Improved Docker Compose instructions (use .env for credentials; safer practice).
+- Provided two practical, complete ways to call LLMs:
+  - Using OpenAI node (simpler).
+  - Using an explicit, working HTTP Request example (complete JSON body) — includes where to find the summary in the response (`choices[0].message.content`).
+- Fixed and clarified expression examples and gave safer JS expressions for date filtering.
+- Made troubleshooting more explicit with direct symptoms and step-by-step fixes.
+- Added concrete testing tips (Execute Node, limit RSS results, ngrok for local webhooks).
+- Improved tone to be encouraging and beginner-focused.
+- Ensured code blocks are complete and ready to use (Docker Compose, cURL).
+- Added security notes and production hints so beginners avoid common exposure mistakes.
+- Shortened/clarified sections that were previously overly technical without explanation.
+
+---
+
+If you'd like, I can also:
+- Generate the actual n8n JSON export of the RSS → OpenAI → Discord workflow so you can import it directly into your instance.
+- Create a one-page printable checklist for running n8n locally or on the cloud.
+
+Would you like the importable workflow JSON next?
